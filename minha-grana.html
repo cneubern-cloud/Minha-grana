@@ -116,6 +116,15 @@
     .empty-msg{text-align:center;color:rgba(255,255,255,0.3);padding:40px;font-size:14px}
     .dica-box{background:rgba(162,155,254,0.08);border-radius:14px;padding:12px 14px;border:1px solid rgba(162,155,254,0.15);margin-bottom:14px;font-size:12px;color:rgba(255,255,255,0.65);line-height:1.6}
     .dica-box strong{color:#a29bfe}
+    .virar-mes-btn{width:100%;padding:14px;border:none;border-radius:12px;background:linear-gradient(135deg,#fdcb6e,#e17055);color:#fff;font-weight:800;font-size:15px;cursor:pointer;margin-bottom:14px;letter-spacing:0.5px}
+    .virar-mes-btn:active{opacity:0.85;transform:scale(0.98)}
+    .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:300;display:flex;align-items:center;justify-content:center;padding:24px}
+    .modal{background:#1e1b3a;border-radius:20px;padding:24px;width:100%;border:1px solid rgba(255,255,255,0.1)}
+    .modal-title{font-size:18px;font-weight:800;margin-bottom:8px}
+    .modal-msg{font-size:13px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:20px}
+    .modal-btn-row{display:flex;gap:10px}
+    .modal-confirm{flex:1;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#fdcb6e,#e17055);color:#fff;font-weight:800;font-size:14px;cursor:pointer}
+    .modal-cancel{flex:1;padding:12px;border:none;border-radius:12px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);font-weight:700;font-size:14px;cursor:pointer}
     #install-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#6c5ce7,#a29bfe);padding:14px 20px;padding-bottom:max(14px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;z-index:200;box-shadow:0 -4px 20px rgba(0,0,0,0.3)}
     #install-banner p{font-size:13px;font-weight:600}
     #install-banner small{font-size:11px;opacity:0.8;display:block;margin-top:2px}
@@ -136,6 +145,16 @@
   <div style="display:flex;align-items:center">
     <button class="install-btn" id="install-btn">Instalar</button>
     <button class="dismiss-btn" id="dismiss-btn">✕</button>
+  </div>
+</div>
+<div id="modal-virar" style="display:none" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">🔄 Virar o Mês?</div>
+    <div class="modal-msg">Os gastos registrados nas semanas serão apagados e as semanas voltam a zero.<br><br>Os gastos fixos e parcelas continuam normalmente.</div>
+    <div class="modal-btn-row">
+      <button class="modal-cancel" onclick="document.getElementById('modal-virar').style.display='none'">Cancelar</button>
+      <button class="modal-confirm" onclick="confirmarVirarMes()">✓ Virar o Mês</button>
+    </div>
   </div>
 </div>
 <script>
@@ -298,6 +317,9 @@ function render(){
           <div class="mini-card-sub">30 dias</div>
         </div>
       </div>
+
+      <!-- VIRAR MES -->
+      <button class="virar-mes-btn" onclick="document.getElementById('modal-virar').style.display='flex'">🔄 Virar o Mês</button>
 
       <!-- TABS -->
       <div class="tabs">
@@ -571,6 +593,19 @@ function salvarEnv(cat){
   if(!isNaN(v)&&v>0)st.envelopes[cat]=v;
   else delete st.envelopes[cat];
   st.editEnv=null;salvar();render();
+}
+
+function confirmarVirarMes(){
+  st.gastosSemana=[];
+  // Avança parcelas automaticamente
+  st.parcelas=st.parcelas.filter(p=>{
+    p.parcelaAtual++;
+    return p.parcelaAtual<=p.totalParcelas;
+  });
+  salvar();
+  document.getElementById('modal-virar').style.display='none';
+  alert('✅ Mês virado! Semanas zeradas e parcelas atualizadas.');
+  render();
 }
 
 // PWA
