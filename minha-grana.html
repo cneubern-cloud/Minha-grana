@@ -191,6 +191,7 @@ function salvar(){
     localStorage.setItem('mg_parcelas',JSON.stringify(st.parcelas));
     localStorage.setItem('mg_gastos_sem',JSON.stringify(st.gastosSemana));
     localStorage.setItem('mg_envelopes',JSON.stringify(st.envelopes));
+    localStorage.setItem('mg_historico',JSON.stringify(st.historico));
   }catch(e){}
 }
 
@@ -201,9 +202,10 @@ function carregar(){
       gastos:JSON.parse(localStorage.getItem('mg_gastos'))||GASTOS_PADRAO,
       parcelas:JSON.parse(localStorage.getItem('mg_parcelas'))||PARCELAS_PADRAO,
       gastosSemana:JSON.parse(localStorage.getItem('mg_gastos_sem'))||[],
-      envelopes:JSON.parse(localStorage.getItem('mg_envelopes'))||{}
+      envelopes:JSON.parse(localStorage.getItem('mg_envelopes'))||{},
+      historico:JSON.parse(localStorage.getItem('mg_historico'))||[]
     };
-  }catch(e){return{salario:7200,gastos:GASTOS_PADRAO,parcelas:PARCELAS_PADRAO,gastosSemana:[],envelopes:{}};}
+  }catch(e){return{salario:7200,gastos:GASTOS_PADRAO,parcelas:PARCELAS_PADRAO,gastosSemana:[],envelopes:{},historico:[]};}
 }
 
 const dados=carregar();
@@ -216,6 +218,7 @@ let st={
   parcelas:dados.parcelas,
   gastosSemana:dados.gastosSemana,
   envelopes:dados.envelopes,
+  historico:dados.historico,
   aba:'semanas',
   subAba:'gastos',
   editandoSalario:false,
@@ -327,6 +330,7 @@ function render(){
         <button class="tab-btn ${aba==='parcelas'?'active':'inactive'}" onclick="setAba('parcelas')">💳 Parcelas</button>
         <button class="tab-btn ${aba==='envelope'?'active':'inactive'}" onclick="setAba('envelope')">📦 Envelope</button>
         <button class="tab-btn ${aba==='gastos'?'active':'inactive'}" onclick="setAba('gastos')">📋 Fixos</button>
+        <button class="tab-btn ${aba==='historico'?'active':'inactive'}" onclick="setAba('historico')">📆 Histórico</button>
         <button class="tab-btn ${aba==='adicionar'?'active':'inactive'}" onclick="setAba('adicionar')">➕ Add</button>
       </div>
 
@@ -334,6 +338,7 @@ function render(){
       ${aba==='parcelas'?renderParcelas(catOptParcela,diasOptP):''}
       ${aba==='envelope'?renderEnvelope(catMap,envelopes):''}
       ${aba==='gastos'?renderGastos(gastos):''}
+      ${aba==='historico'?renderHistorico():''}
       ${aba==='adicionar'?renderAdicionar(catOptions,diasOptions):''}
     </div>
   `;
@@ -508,6 +513,55 @@ function renderGastos(gastos){
     </div>`;
 }
 
+function renderHistorico(){
+  const h=st.historico;
+  if(h.length===0)return`<div class="card"><div class="card-title">📆 Histórico Mensal</div><div class="empty-msg">Nenhum histórico ainda.<br>Ao virar o mês, o resumo será salvo aqui.</div></div>`;
+  return`<div>
+    ${[...h].reverse().map(m=>{
+      const catMap={};
+      m.gastos.forEach(g=>{catMap[g.categoria]=(catMap[g.categoria]||0)+g.valor;});
+      const porCat=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,3);
+      return`<div class="card" style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:0">📅 ${m.nome}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.4)">${m.data}</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <div style="flex:1;background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-bottom:3px">SALÁRIO</div>
+            <div style="font-size:14px;font-weight:800;color:#a29bfe">${fmt(m.salario)}</div>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-bottom:3px">GASTO VARIÁVEL</div>
+            <div style="font-size:14px;font-weight:800;color:#ff7675">${fmt(m.totalGastos)}</div>
+          </div>
+          <div style="flex:1;background:rgba(255,255,255,0.04);border-radius:10px;padding:10px;text-align:center">
+            <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-bottom:3px">SOBROU</div>
+            <div style="font-size:14px;font-weight:800;color:${m.sobra>=0?'#27ae60':'#e74c3c'}">${fmt(m.sobra)}</div>
+          </div>
+        </div>
+        ${porCat.length>0?`
+          <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:6px">Top categorias:</div>
+          ${porCat.map(([cat,val])=>{
+            const c=CATEGORIAS[cat];
+            return`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+              <span>${c.emoji} ${c.label}</span>
+              <span style="font-weight:700;color:#ff7675">${fmt(val)}</span>
+            </div>`;
+          }).join('')}
+        `:''}
+        ${m.parcelas&&m.parcelas.length>0?`
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:6px">Parcelas pagas:</div>
+          ${m.parcelas.map(p=>`<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+            <span>💳 ${p.descricao} (${p.parcelaAtual}/${p.totalParcelas}x)</span>
+            <span style="font-weight:700;color:#a29bfe">${fmt(p.valorParcela)}</span>
+          </div>`).join('')}
+        `:''}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
 function renderAdicionar(catOptions,diasOptions){
   const{form}=st;
   return`
@@ -596,15 +650,36 @@ function salvarEnv(cat){
 }
 
 function confirmarVirarMes(){
+  // Salva histórico do mês
+  const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const agora=new Date();
+  const mesAnterior=agora.getMonth()===0?11:agora.getMonth()-1;
+  const anoAnterior=agora.getMonth()===0?agora.getFullYear()-1:agora.getFullYear();
+  const totalGastos=st.gastosSemana.reduce((s,g)=>s+g.valor,0);
+  const totalFixos=st.gastos.reduce((s,g)=>s+g.valor,0);
+  const totalParcelas=st.parcelas.reduce((s,p)=>s+p.valorParcela,0);
+  const sobra=st.salario-totalFixos-totalParcelas-totalGastos;
+  st.historico.push({
+    nome:meses[mesAnterior]+' '+anoAnterior,
+    data:agora.toLocaleDateString('pt-BR'),
+    salario:st.salario,
+    totalGastos,
+    totalFixos,
+    totalParcelas,
+    sobra,
+    gastos:[...st.gastosSemana],
+    parcelas:st.parcelas.map(p=>({...p}))
+  });
+  // Zera semanas
   st.gastosSemana=[];
-  // Avança parcelas automaticamente
+  // Avança parcelas
   st.parcelas=st.parcelas.filter(p=>{
     p.parcelaAtual++;
     return p.parcelaAtual<=p.totalParcelas;
   });
   salvar();
   document.getElementById('modal-virar').style.display='none';
-  alert('✅ Mês virado! Semanas zeradas e parcelas atualizadas.');
+  alert('✅ Mês virado! Histórico salvo, semanas zeradas e parcelas atualizadas.');
   render();
 }
 
