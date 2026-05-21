@@ -176,8 +176,8 @@ const GASTOS_PADRAO=[
   {id:11,descricao:"Seguro",valor:195.05,categoria:"transporte",dia:10,fixo:true},
   {id:12,descricao:"Investimento",valor:300,categoria:"investimentos",dia:1,fixo:true},
   {id:13,descricao:"Saque (guardar em casa)",valor:300,categoria:"outros",dia:1,fixo:true},
-  {id:14,descricao:"Cartão Crédito #1",valor:500,categoria:"dividas",dia:1,fixo:true},
-  {id:15,descricao:"Cartão Crédito #2",valor:800,categoria:"dividas",dia:1,fixo:true},
+  {id:14,descricao:"iFood (Cartão #1)",valor:500,categoria:"alimentacao",dia:1,fixo:true},
+  {id:15,descricao:"Cartão #2 (emergências)",valor:0,categoria:"dividas",dia:1,fixo:false},
 ];
 
 const PARCELAS_PADRAO=[
@@ -210,7 +210,7 @@ function carregar(){
 
 const dados=carregar();
 const hoje=new Date().getDate();
-const fmt=v=>Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const fmt=v=>st&&st.ocultarValores?'R$ ••••••':Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 
 let st={
   salario:dados.salario,
@@ -227,7 +227,10 @@ let st={
   formParcela:{descricao:'',valorTotal:'',parcelas:'',categoria:'educacao',dia:hoje},
   formGastoSem:{descricao:'',valor:'',categoria:'alimentacao'},
   editEnv:null,
-  envTemp:''
+  envTemp:'',
+  editGastoId:null,
+  ocultarValores:false,
+  editGastoForm:{descricao:'',valor:'',categoria:'moradia',dia:1}
 };
 
 function semanaAtual(){
@@ -281,17 +284,20 @@ function render(){
         <div class="header-sub">Dia ${hoje} do mês</div>
       </div>
       <div>
-        ${editandoSalario?`
-          <div class="salary-edit">
-            <input class="salary-input" id="sal-input" type="number" value="${salarioTemp}" />
-            <button class="salary-btn" onclick="confirmarSalario()">✓</button>
-          </div>
-        `:`
-          <div class="salary-display" onclick="editarSalario()">
-            <div class="salary-label">Salário mensal</div>
-            <div class="salary-value">${fmt(salario)}</div>
-          </div>
-        `}
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="st.ocultarValores=!st.ocultarValores;render()" style="background:rgba(255,255,255,0.08);border:none;border-radius:8px;padding:6px 10px;color:rgba(255,255,255,0.6);cursor:pointer;font-size:16px">${st.ocultarValores?'👁️':'🙈'}</button>
+          ${editandoSalario?`
+            <div class="salary-edit">
+              <input class="salary-input" id="sal-input" type="number" value="${salarioTemp}" />
+              <button class="salary-btn" onclick="confirmarSalario()">✓</button>
+            </div>
+          `:`
+            <div class="salary-display" onclick="editarSalario()">
+              <div class="salary-label">Salário mensal</div>
+              <div class="salary-value">${fmt(salario)}</div>
+            </div>
+          `}
+        </div>
       </div>
     </div>
 
@@ -325,13 +331,15 @@ function render(){
       <button class="virar-mes-btn" onclick="document.getElementById('modal-virar').style.display='flex'">🔄 Virar o Mês</button>
 
       <!-- TABS -->
-      <div class="tabs">
+      <div class="tabs" style="margin-bottom:6px">
         <button class="tab-btn ${aba==='semanas'?'active':'inactive'}" onclick="setAba('semanas')">📅 Semanas</button>
         <button class="tab-btn ${aba==='parcelas'?'active':'inactive'}" onclick="setAba('parcelas')">💳 Parcelas</button>
         <button class="tab-btn ${aba==='envelope'?'active':'inactive'}" onclick="setAba('envelope')">📦 Envelope</button>
+      </div>
+      <div class="tabs">
         <button class="tab-btn ${aba==='gastos'?'active':'inactive'}" onclick="setAba('gastos')">📋 Fixos</button>
         <button class="tab-btn ${aba==='historico'?'active':'inactive'}" onclick="setAba('historico')">📆 Histórico</button>
-        <button class="tab-btn ${aba==='adicionar'?'active':'inactive'}" onclick="setAba('adicionar')">➕ Add</button>
+        <button class="tab-btn ${aba==='adicionar'?'active':'inactive'}" onclick="setAba('adicionar')">➕ Adicionar</button>
       </div>
 
       ${aba==='semanas'?renderSemanas(porSemana,semIdx,catOptSem):''}
@@ -493,10 +501,32 @@ function renderEnvelope(catMap,envelopes){
 }
 
 function renderGastos(gastos){
+  const editId=st.editGastoId;
+  const ef=st.editGastoForm;
+  const catOptions=(sel)=>Object.entries(CATEGORIAS).map(([k,v])=>`<option value="${k}" ${sel===k?'selected':''}>${v.emoji} ${v.label}</option>`).join('');
+  const diasOptions=(sel)=>Array.from({length:31},(_,i)=>i+1).map(d=>`<option value="${d}" ${sel===d?'selected':''}>Dia ${d}</option>`).join('');
   return`
     <div>
       ${[...gastos].sort((a,b)=>a.dia-b.dia).map(g=>{
         const cat=CATEGORIAS[g.categoria];
+        const isEdit=editId===g.id;
+        if(isEdit)return`
+          <div class="gasto-item" style="flex-direction:column;align-items:stretch;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="gasto-icon" style="background:${cat.cor}33">${cat.emoji}</div>
+              <div style="font-weight:700;font-size:14px">Editando: ${g.descricao}</div>
+            </div>
+            <input class="form-input" placeholder="Descrição" value="${ef.descricao}" oninput="st.editGastoForm.descricao=this.value" />
+            <div style="display:flex;gap:8px">
+              <input class="form-input" type="number" inputmode="decimal" placeholder="Valor" value="${ef.valor}" oninput="st.editGastoForm.valor=this.value" style="flex:1" />
+              <select class="form-input" style="flex:1" onchange="st.editGastoForm.categoria=this.value">${catOptions(ef.categoria)}</select>
+            </div>
+            <select class="form-input" onchange="st.editGastoForm.dia=parseInt(this.value)">${diasOptions(ef.dia)}</select>
+            <div style="display:flex;gap:8px">
+              <button onclick="salvarEdicaoGasto(${g.id})" style="flex:1;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#a29bfe,#6c5ce7);color:#fff;font-weight:800;cursor:pointer">✓ Salvar</button>
+              <button onclick="st.editGastoId=null;render()" style="flex:1;padding:10px;border:none;border-radius:10px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);font-weight:700;cursor:pointer">Cancelar</button>
+            </div>
+          </div>`;
         return`<div class="gasto-item">
           <div class="gasto-icon" style="background:${cat.cor}33">${cat.emoji}</div>
           <div class="gasto-info">
@@ -505,7 +535,10 @@ function renderGastos(gastos){
           </div>
           <div class="gasto-valor">
             <div class="gasto-valor-num">${fmt(g.valor)}</div>
-            <button class="gasto-remover" onclick="removerGasto(${g.id})">✕ remover</button>
+            <div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end">
+              <button onclick="editarGasto(${g.id})" style="background:rgba(162,155,254,0.2);border:none;border-radius:6px;color:#a29bfe;cursor:pointer;font-size:11px;padding:3px 8px;font-weight:700">✏️ editar</button>
+              <button class="gasto-remover" style="margin-top:0" onclick="removerGasto(${g.id})">✕</button>
+            </div>
           </div>
         </div>`;
       }).join('')}
@@ -639,6 +672,24 @@ function avancarParcela(id){
   if(p.parcelaAtual>=p.totalParcelas){
     if(confirm('Última parcela paga! Remover da lista?')){st.parcelas=st.parcelas.filter(x=>x.id!==id);}
   } else {p.parcelaAtual++;}
+  salvar();render();
+}
+
+function editarGasto(id){
+  const g=st.gastos.find(g=>g.id===id);
+  if(!g)return;
+  st.editGastoId=id;
+  st.editGastoForm={descricao:g.descricao,valor:g.valor,categoria:g.categoria,dia:g.dia};
+  render();
+}
+
+function salvarEdicaoGasto(id){
+  const{descricao,valor,categoria,dia}=st.editGastoForm;
+  if(!descricao.trim()||!valor){alert('Preencha todos os campos!');return;}
+  const idx=st.gastos.findIndex(g=>g.id===id);
+  if(idx===-1)return;
+  st.gastos[idx]={...st.gastos[idx],descricao:descricao.trim(),valor:parseFloat(valor),categoria,dia:parseInt(dia)};
+  st.editGastoId=null;
   salvar();render();
 }
 
