@@ -163,21 +163,21 @@ const CATEGORIAS={moradia:{label:"Moradia",emoji:"🏠",cor:"#e74c3c"},alimentac
 const SEMANAS=[{nome:"Semana 1",dias:[1,7]},{nome:"Semana 2",dias:[8,14]},{nome:"Semana 3",dias:[15,21]},{nome:"Semana 4",dias:[22,31]}];
 
 const GASTOS_PADRAO=[
-  {id:1,descricao:"Água",valor:100,categoria:"moradia",dia:10,fixo:true},
-  {id:2,descricao:"Luz",valor:300,categoria:"moradia",dia:10,fixo:true},
-  {id:3,descricao:"Internet e Celular",valor:220,categoria:"moradia",dia:15,fixo:true},
-  {id:4,descricao:"IPTU",valor:241.16,categoria:"moradia",dia:10,fixo:true},
-  {id:5,descricao:"Filtro",valor:99.90,categoria:"moradia",dia:10,fixo:true},
-  {id:6,descricao:"Faxina",valor:280,categoria:"moradia",dia:15,fixo:true},
-  {id:7,descricao:"Cachorras",valor:300,categoria:"pet",dia:1,fixo:true},
-  {id:8,descricao:"Plano de Saúde",valor:960.38,categoria:"saude",dia:1,fixo:true},
-  {id:9,descricao:"Estacionamento",valor:200,categoria:"transporte",dia:5,fixo:true},
-  {id:10,descricao:"Combustível",valor:300,categoria:"transporte",dia:1,fixo:true},
-  {id:11,descricao:"Seguro",valor:195.05,categoria:"transporte",dia:10,fixo:true},
-  {id:12,descricao:"Investimento",valor:300,categoria:"investimentos",dia:1,fixo:true},
-  {id:13,descricao:"Saque (guardar em casa)",valor:300,categoria:"outros",dia:1,fixo:true},
-  {id:14,descricao:"iFood (Cartão #1)",valor:500,categoria:"alimentacao",dia:1,fixo:true},
-  {id:15,descricao:"Cartão #2 (emergências)",valor:0,categoria:"dividas",dia:1,fixo:false},
+  {id:1,pago:false,descricao:"Água",valor:100,categoria:"moradia",dia:10,fixo:true},
+  {id:2,pago:false,descricao:"Luz",valor:300,categoria:"moradia",dia:10,fixo:true},
+  {id:3,pago:false,descricao:"Internet e Celular",valor:220,categoria:"moradia",dia:15,fixo:true},
+  {id:4,pago:false,descricao:"IPTU",valor:241.16,categoria:"moradia",dia:10,fixo:true},
+  {id:5,pago:false,descricao:"Filtro",valor:99.90,categoria:"moradia",dia:10,fixo:true},
+  {id:6,pago:false,descricao:"Faxina",valor:280,categoria:"moradia",dia:15,fixo:true},
+  {id:7,pago:false,descricao:"Cachorras",valor:300,categoria:"pet",dia:1,fixo:true},
+  {id:8,pago:false,descricao:"Plano de Saúde",valor:960.38,categoria:"saude",dia:1,fixo:true},
+  {id:9,pago:false,descricao:"Estacionamento",valor:200,categoria:"transporte",dia:5,fixo:true},
+  {id:10,pago:false,descricao:"Combustível",valor:300,categoria:"transporte",dia:1,fixo:true},
+  {id:11,pago:false,descricao:"Seguro",valor:195.05,categoria:"transporte",dia:10,fixo:true},
+  {id:12,pago:false,descricao:"Investimento",valor:300,categoria:"investimentos",dia:1,fixo:true},
+  {id:13,pago:false,descricao:"Saque (guardar em casa)",valor:300,categoria:"outros",dia:1,fixo:true},
+  {id:14,pago:false,descricao:"iFood (Cartão #1)",valor:500,categoria:"alimentacao",dia:1,fixo:true},
+  {id:15,pago:false,descricao:"Cartão #2 (emergências)",valor:0,categoria:"dividas",dia:1,fixo:false},
 ];
 
 const PARCELAS_PADRAO=[
@@ -254,11 +254,12 @@ function gastosSemanaIdx(idx){
 
 function render(){
   const{salario,gastos,parcelas,aba,subAba,editandoSalario,salarioTemp,form,formParcela,formGastoSem,envelopes}=st;
-  const totalFixos=gastos.reduce((s,g)=>s+g.valor,0);
+  const totalFixosPagos=gastos.filter(g=>g.pago).reduce((s,g)=>s+g.valor,0);
+  const totalFixosPendentes=gastos.filter(g=>!g.pago).reduce((s,g)=>s+g.valor,0);
   const totalParcelas=parcelas.reduce((s,p)=>s+p.valorParcela,0);
-  const totalComprometido=totalFixos+totalParcelas;
-  const sobra=salario-totalComprometido;
-  const pct=Math.min((totalComprometido/salario)*100,100);
+  const totalComprometido=totalFixosPagos;
+  const sobra=salario-totalFixosPagos;
+  const pct=Math.min(((totalFixosPagos+totalFixosPendentes+totalParcelas)/salario)*100,100);
   const porSemana=sobra/4;
   const porDia=sobra/30;
   const statusCor=sobra>salario*0.3?'#27ae60':sobra>0?'#f39c12':'#e74c3c';
@@ -304,11 +305,12 @@ function render(){
     <div class="main">
       <!-- SALDO -->
       <div class="saldo-card" style="background:linear-gradient(135deg,${statusCor}22,${statusCor}44);border:2px solid ${statusCor}66">
-        <div class="saldo-label">SALDO LIVRE DO MÊS</div>
+        <div class="saldo-label">SALDO DISPONÍVEL</div>
         <div class="saldo-valor" style="color:${statusCor}">${fmt(sobra)}</div>
         <div class="saldo-msg">${statusMsg}</div>
         <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${progressCor}"></div></div>
-        <div class="progress-labels"><span>Comprometido: ${fmt(totalComprometido)} (${Math.round(pct)}%)</span><span>Livre: ${fmt(sobra)}</span></div>
+        <div class="progress-labels"><span>Pago: ${fmt(totalFixosPagos)}</span><span>A pagar: ${fmt(totalFixosPendentes+totalParcelas)}</span></div>
+        ${totalFixosPendentes>0?`<div style="margin-top:8px;font-size:11px;color:rgba(255,200,0,0.8)">⏳ ${gastos.filter(g=>!g.pago).length} conta(s) pendente(s): ${fmt(totalFixosPendentes)}</div>`:'<div style="margin-top:8px;font-size:11px;color:#27ae60">✅ Todas as contas fixas pagas!</div>'}
       </div>
 
       <!-- MINI CARDS -->
@@ -527,16 +529,17 @@ function renderGastos(gastos){
               <button onclick="st.editGastoId=null;render()" style="flex:1;padding:10px;border:none;border-radius:10px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);font-weight:700;cursor:pointer">Cancelar</button>
             </div>
           </div>`;
-        return`<div class="gasto-item">
+        return`<div class="gasto-item" style="${g.pago?'opacity:0.6;background:rgba(39,174,96,0.08);border-color:rgba(39,174,96,0.2)':''}">
           <div class="gasto-icon" style="background:${cat.cor}33">${cat.emoji}</div>
           <div class="gasto-info">
-            <div class="gasto-nome">${g.descricao}</div>
+            <div class="gasto-nome" style="${g.pago?'text-decoration:line-through;color:rgba(255,255,255,0.4)':''}">${g.descricao}</div>
             <div class="gasto-sub">Dia ${g.dia} · ${cat.label}${g.fixo?' · 🔒 Fixo':''}</div>
           </div>
           <div class="gasto-valor">
-            <div class="gasto-valor-num">${fmt(g.valor)}</div>
+            <div class="gasto-valor-num" style="${g.pago?'color:#27ae60':''}">${fmt(g.valor)}</div>
             <div style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end">
-              <button onclick="editarGasto(${g.id})" style="background:rgba(162,155,254,0.2);border:none;border-radius:6px;color:#a29bfe;cursor:pointer;font-size:11px;padding:3px 8px;font-weight:700">✏️ editar</button>
+              <button onclick="togglePago(${g.id})" style="background:${g.pago?'rgba(39,174,96,0.3)':'rgba(255,255,255,0.08)'};border:none;border-radius:6px;color:${g.pago?'#27ae60':'rgba(255,255,255,0.4)'};cursor:pointer;font-size:11px;padding:3px 8px;font-weight:700">${g.pago?'✅ paga':'⬜ pagar'}</button>
+              <button onclick="editarGasto(${g.id})" style="background:rgba(162,155,254,0.2);border:none;border-radius:6px;color:#a29bfe;cursor:pointer;font-size:11px;padding:3px 8px;font-weight:700">✏️</button>
               <button class="gasto-remover" style="margin-top:0" onclick="removerGasto(${g.id})">✕</button>
             </div>
           </div>
@@ -675,6 +678,13 @@ function avancarParcela(id){
   salvar();render();
 }
 
+function togglePago(id){
+  const idx=st.gastos.findIndex(g=>g.id===id);
+  if(idx===-1)return;
+  st.gastos[idx].pago=!st.gastos[idx].pago;
+  salvar();render();
+}
+
 function editarGasto(id){
   const g=st.gastos.find(g=>g.id===id);
   if(!g)return;
@@ -721,8 +731,9 @@ function confirmarVirarMes(){
     gastos:[...st.gastosSemana],
     parcelas:st.parcelas.map(p=>({...p}))
   });
-  // Zera semanas
+  // Zera semanas e reset pagamentos
   st.gastosSemana=[];
+  st.gastos=st.gastos.map(g=>({...g,pago:false}));
   // Avança parcelas
   st.parcelas=st.parcelas.filter(p=>{
     p.parcelaAtual++;
