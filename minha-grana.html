@@ -278,13 +278,16 @@ function render(){
   var totalParcelasPendentes=0;
   parcelas.forEach(function(p){if(p.pago)totalParcelasPagas+=p.valorParcela;else totalParcelasPendentes+=p.valorParcela;});
 
-  var saldo=sal-totalPagos-totalParcelasPagas;
-  var pct=Math.min(((totalPagos+totalPendentes+totalParcelasPagas+totalParcelasPendentes)/sal)*100,100);
+  var totalGsem=0;
+  st.gsem.forEach(function(g){totalGsem+=g.valor;});
+
+  var saldo=sal-totalPagos-totalParcelasPagas-totalGsem;
+  var pct=Math.min(((totalPagos+totalPendentes+totalParcelasPagas+totalParcelasPendentes+totalGsem)/sal)*100,100);
   var corSaldo=saldo>sal*0.3?'#27ae60':saldo>0?'#f39c12':'#e74c3c';
   var msgSaldo=saldo>sal*0.3?'Ótimo! Você está bem.':saldo>0?'Atenção! Margem apertada.':'🚨 Gastos maiores que a renda!';
   var corProg=pct>90?'#e74c3c':pct>70?'#f39c12':'#27ae60';
 
-  var sobra=sal-(totalPagos+totalPendentes+totalParcelasPagas+totalParcelasPendentes);
+  var sobra=sal-(totalPagos+totalPendentes+totalParcelasPagas+totalParcelasPendentes+totalGsem);
   var porSemana=sobra/4;
   var porDia=sobra/30;
 
@@ -315,7 +318,7 @@ function render(){
   saldoCard+='<div style="font-size:34px;font-weight:900;letter-spacing:-1px;color:'+corSaldo+'">'+fmt(saldo)+'</div>';
   saldoCard+='<div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:6px">'+msgSaldo+'</div>';
   saldoCard+='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+corProg+'"></div></div>';
-  saldoCard+='<div class="progress-labels"><span>Pago: '+fmt(totalPagos+totalParcelasPagas)+'</span><span>A pagar: '+fmt(totalPendentes+totalParcelasPendentes)+'</span></div>';
+  saldoCard+='<div class="progress-labels"><span>Pago: '+fmt(totalPagos+totalParcelasPagas+totalGsem)+'</span><span>A pagar: '+fmt(totalPendentes+totalParcelasPendentes)+'</span></div>';
   if(totalPendentes>0){
     saldoCard+='<div style="margin-top:8px;font-size:11px;color:rgba(255,200,0,0.8)">⏳ '+gastos.filter(function(g){return!g.pago;}).length+' conta(s) pendente(s): '+fmt(totalPendentes)+'</div>';
   }else{
@@ -348,6 +351,10 @@ function render(){
     '<div class="main">'+
       saldoCard+
       '<button class="virar-mes-btn" onclick="document.getElementById(\'modal-virar\').style.display=\'flex\'">🔄 Virar o Mês</button>'+
+      '<div style="display:flex;gap:8px;margin-bottom:14px">'+
+      '<button onclick="exportarDados()" style="flex:1;padding:10px;border:none;border-radius:12px;background:rgba(0,206,201,0.2);color:#00cec9;font-weight:700;font-size:12px;cursor:pointer">💾 Exportar Backup</button>'+
+      '<button onclick="importarDados()" style="flex:1;padding:10px;border:none;border-radius:12px;background:rgba(162,155,254,0.2);color:#a29bfe;font-weight:700;font-size:12px;cursor:pointer">📂 Importar Backup</button>'+
+      '</div>'+
       miniCards+
       tabs1+tabs2+
       abaHtml+
@@ -758,6 +765,59 @@ function confirmarVirarMes(){
   document.getElementById('modal-virar').style.display='none';
   alert('✅ Mês virado! Histórico salvo.');
   render();
+}
+
+// BACKUP & RESTORE
+function exportarDados(){
+  var dados={
+    salario:st.salario,
+    gastos:st.gastos,
+    parcelas:st.parcelas,
+    gsem:st.gsem,
+    envelopes:st.envelopes,
+    historico:st.historico,
+    exportadoEm:new Date().toLocaleString('pt-BR')
+  };
+  var json=JSON.stringify(dados,null,2);
+  var blob=new Blob([json],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='minha-grana-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importarDados(){
+  var input=document.createElement('input');
+  input.type='file';
+  input.accept='.json';
+  input.onchange=function(e){
+    var file=e.target.files[0];
+    if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var dados=JSON.parse(ev.target.result);
+        if(!dados.salario||!dados.gastos){alert('Arquivo inválido!');return;}
+        if(!confirm('Isso vai substituir todos os dados atuais. Continuar?'))return;
+        st.salario=dados.salario;
+        st.gastos=dados.gastos;
+        st.parcelas=dados.parcelas||[];
+        st.gsem=dados.gsem||[];
+        st.envelopes=dados.envelopes||{};
+        st.historico=dados.historico||[];
+        salvar();render();
+        alert('✅ Dados restaurados com sucesso!');
+      }catch(err){alert('Erro ao importar: arquivo inválido.');}
+    };
+    reader.readAsText(file);
+  };
+  document.body.appendChild(input);
+  input.click();
+  document.body.removeChild(input);
 }
 
 // PWA
