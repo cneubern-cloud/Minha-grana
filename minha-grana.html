@@ -182,7 +182,7 @@ var GASTOS_PADRAO=[
 ];
 
 var PARCELAS_PADRAO=[
-  {id:1,descricao:"Curso",valorTotal:2580,valorParcela:258,totalParcelas:10,parcelaAtual:1,categoria:"educacao",dia:10}
+  {id:1,pago:false,descricao:"Curso",valorTotal:2580,valorParcela:258,totalParcelas:10,parcelaAtual:1,categoria:"educacao",dia:10}
 ];
 
 var ENVELOPES_PADRAO={alimentacao:600,beleza:200,roupas:300,presentes:100,casa:100,pet:100,saude:100,outros:745.51};
@@ -274,16 +274,17 @@ function render(){
   var totalPagos=0;
   var totalPendentes=0;
   gastos.forEach(function(g){if(g.pago)totalPagos+=g.valor;else totalPendentes+=g.valor;});
-  var totalParcelas=0;
-  parcelas.forEach(function(p){totalParcelas+=p.valorParcela;});
+  var totalParcelasPagas=0;
+  var totalParcelasPendentes=0;
+  parcelas.forEach(function(p){if(p.pago)totalParcelasPagas+=p.valorParcela;else totalParcelasPendentes+=p.valorParcela;});
 
-  var saldo=sal-totalPagos;
-  var pct=Math.min(((totalPagos+totalPendentes+totalParcelas)/sal)*100,100);
+  var saldo=sal-totalPagos-totalParcelasPagas;
+  var pct=Math.min(((totalPagos+totalPendentes+totalParcelasPagas+totalParcelasPendentes)/sal)*100,100);
   var corSaldo=saldo>sal*0.3?'#27ae60':saldo>0?'#f39c12':'#e74c3c';
   var msgSaldo=saldo>sal*0.3?'Ótimo! Você está bem.':saldo>0?'Atenção! Margem apertada.':'🚨 Gastos maiores que a renda!';
   var corProg=pct>90?'#e74c3c':pct>70?'#f39c12':'#27ae60';
 
-  var sobra=sal-(totalPagos+totalPendentes+totalParcelas);
+  var sobra=sal-(totalPagos+totalPendentes+totalParcelasPagas+totalParcelasPendentes);
   var porSemana=sobra/4;
   var porDia=sobra/30;
 
@@ -449,7 +450,7 @@ function renderParcelas(){
       html+='<div class="parcela-bar"><div class="parcela-bar-fill" style="width:'+pct+'%"></div></div>';
       html+='<div class="parcela-labels"><span>Pago: '+fmt(totalPago)+'</span><span>Total: '+fmt(p.valorTotal)+'</span></div>';
       html+='<div style="display:flex;gap:8px;margin-top:8px">';
-      html+='<button data-id="'+p.id+'" onclick="avancarParcela(this.dataset.id)" style="flex:1;padding:6px;border-radius:8px;border:none;background:rgba(162,155,254,0.2);color:#a29bfe;font-weight:700;font-size:11px;cursor:pointer">✓ Paguei</button>';
+      html+='<button data-id="'+p.id+'" onclick="avancarParcela(this.dataset.id)" style="flex:1;padding:6px;border-radius:8px;border:none;background:'+(p.pago?'rgba(39,174,96,0.3)':'rgba(162,155,254,0.2)')+';color:'+(p.pago?'#27ae60':'#a29bfe')+';font-weight:700;font-size:11px;cursor:pointer">'+(p.pago?'✅ Paga':'⬜ Paguei')+'</button>';
       html+='<button data-id="'+p.id+'" onclick="editarParcela(this.dataset.id)" style="padding:6px 10px;border-radius:8px;border:none;background:rgba(162,155,254,0.15);color:#a29bfe;font-size:11px;cursor:pointer;font-weight:700">✏️</button>';
       html+='<button data-id="'+p.id+'" onclick="remParcela(this.dataset.id)" style="padding:6px 10px;border-radius:8px;border:none;background:rgba(231,76,60,0.15);color:#ff7675;font-size:11px;cursor:pointer">✕</button>';
       html+='</div></div>';
@@ -680,11 +681,19 @@ function remParcela(id){
 
 function avancarParcela(id){
   id=parseInt(id);
+  var idx=st.parcelas.findIndex(function(p){return p.id===id;});
+  if(idx===-1)return;
+  st.parcelas[idx].pago=!st.parcelas[idx].pago;
+  salvar();render();
+}
+
+function avancarParcelaMes(id){
+  id=parseInt(id);
   var p=st.parcelas.find(function(p){return p.id===id;});
   if(!p)return;
   if(p.parcelaAtual>=p.totalParcelas){
     if(confirm('Última parcela paga! Remover da lista?'))st.parcelas=st.parcelas.filter(function(x){return x.id!==id;});
-  }else{p.parcelaAtual++;}
+  }else{p.parcelaAtual++;p.pago=false;}
   salvar();render();
 }
 
@@ -739,7 +748,7 @@ function confirmarVirarMes(){
   st.gsem=[];
   st.gastos=st.gastos.map(function(g){return Object.assign({},g,{pago:false});});
   st.parcelas=st.parcelas.filter(function(p){
-    p.parcelaAtual++;
+    p.parcelaAtual++;p.pago=false;
     return p.parcelaAtual<=p.totalParcelas;
   });
   salvar();
