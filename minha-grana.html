@@ -315,7 +315,7 @@ function render(){
   saldoCard+='<div style="font-size:34px;font-weight:900;letter-spacing:-1px;color:'+corSaldo+'">'+fmt(saldo)+'</div>';
   saldoCard+='<div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:6px">'+msgSaldo+'</div>';
   saldoCard+='<div class="progress-bar"><div class="progress-fill" style="width:'+pct+'%;background:'+corProg+'"></div></div>';
-  saldoCard+='<div class="progress-labels"><span>Pago: '+fmt(totalPagos)+'</span><span>A pagar: '+fmt(totalPendentes+totalParcelas)+'</span></div>';
+  saldoCard+='<div class="progress-labels"><span>Pago: '+fmt(totalPagos+totalParcelasPagas)+'</span><span>A pagar: '+fmt(totalPendentes+totalParcelasPendentes)+'</span></div>';
   if(totalPendentes>0){
     saldoCard+='<div style="margin-top:8px;font-size:11px;color:rgba(255,200,0,0.8)">⏳ '+gastos.filter(function(g){return!g.pago;}).length+' conta(s) pendente(s): '+fmt(totalPendentes)+'</div>';
   }else{
@@ -562,7 +562,10 @@ function renderHistorico(){
     var m=h[i];
     var catMap={};
     if(m.gastos)m.gastos.forEach(function(g){catMap[g.categoria]=(catMap[g.categoria]||0)+g.valor;});
-    var topCats=Object.entries(catMap).sort(function(a,b){return b[1]-a[1];}).slice(0,3);
+    var topCats=[];
+    Object.keys(catMap).forEach(function(k){topCats.push([k,catMap[k]]);});
+    topCats.sort(function(a,b){return b[1]-a[1];});
+    topCats=topCats.slice(0,3);
     html+='<div class="card">';
     html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">';
     html+='<div class="card-title" style="margin-bottom:0">📅 '+m.nome+'</div>';
@@ -622,7 +625,7 @@ function remGasto(id){
 
 function togglePago(id){
   id=parseInt(id);
-  var idx=st.gastos.findIndex(function(g){return g.id===id;});
+  var idx=-1;for(var fi=0;fi<st.gastos.length;fi++){if(st.gastos[fi].id===id){idx=fi;break;}}
   if(idx===-1)return;
   st.gastos[idx].pago=!st.gastos[idx].pago;
   salvar();render();
@@ -641,7 +644,7 @@ function salvarEdicaoGasto(id){
   id=parseInt(id);
   var ef=st.editGastoForm;
   if(!ef.descricao.trim()||!ef.valor){alert('Preencha todos os campos!');return;}
-  var idx=st.gastos.findIndex(function(g){return g.id===id;});
+  var idx=-1;for(var fi=0;fi<st.gastos.length;fi++){if(st.gastos[fi].id===id){idx=fi;break;}}
   if(idx===-1)return;
   st.gastos[idx]=Object.assign({},st.gastos[idx],{descricao:ef.descricao.trim(),valor:parseFloat(ef.valor),categoria:ef.categoria,dia:parseInt(ef.dia)});
   st.editGastoId=null;
@@ -681,7 +684,7 @@ function remParcela(id){
 
 function avancarParcela(id){
   id=parseInt(id);
-  var idx=st.parcelas.findIndex(function(p){return p.id===id;});
+  var idx=-1;for(var fi=0;fi<st.parcelas.length;fi++){if(st.parcelas[fi].id===id){idx=fi;break;}}
   if(idx===-1)return;
   st.parcelas[idx].pago=!st.parcelas[idx].pago;
   salvar();render();
@@ -711,7 +714,7 @@ function salvarEdicaoParcela(id){
   var ep=st.editParcelaForm;
   if(!ep.descricao.trim()||!ep.valorTotal||!ep.totalParcelas){alert('Preencha todos os campos!');return;}
   var vt=parseFloat(ep.valorTotal),np=parseInt(ep.totalParcelas),pa=parseInt(ep.parcelaAtual);
-  var idx=st.parcelas.findIndex(function(p){return p.id===id;});
+  var idx=-1;for(var fi=0;fi<st.parcelas.length;fi++){if(st.parcelas[fi].id===id){idx=fi;break;}}
   if(idx===-1)return;
   st.parcelas[idx]=Object.assign({},st.parcelas[idx],{descricao:ep.descricao.trim(),valorTotal:vt,valorParcela:vt/np,totalParcelas:np,parcelaAtual:pa,categoria:ep.categoria,dia:parseInt(ep.dia)});
   st.editParcelaId=null;
@@ -763,7 +766,7 @@ window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();def
 document.getElementById('install-btn').addEventListener('click',function(){if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt.userChoice.then(function(){deferredPrompt=null;document.getElementById('install-banner').style.display='none';});});
 document.getElementById('dismiss-btn').addEventListener('click',function(){document.getElementById('install-banner').style.display='none';});
 window.addEventListener('appinstalled',function(){document.getElementById('install-banner').style.display='none';});
-if('serviceWorker' in navigator){var sw="const C='mg-v3';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['/']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(function(){});}
+if('serviceWorker' in navigator){var sw="var C='mg-v3';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['/']))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));";navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(function(){});}
 
 render();
 </script>
