@@ -112,13 +112,12 @@
     .cat-header{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px}
     .cat-bar{background:rgba(255,255,255,0.1);border-radius:99px;height:6px}
     .cat-fill{height:100%;border-radius:99px;transition:width 0.4s}
-    #install-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#6c5ce7,#a29bfe);padding:14px 20px;padding-bottom:max(14px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;z-index:200;box-shadow:0 -4px 20px rgba(0,0,0,0.3)}
+    #install-banner{display:none!important;}
     #install-banner p{font-size:13px;font-weight:600}
     #install-banner small{font-size:11px;opacity:0.8;display:block;margin-top:2px}
     .install-btn{background:#fff;color:#6c5ce7;border:none;border-radius:10px;padding:8px 16px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap}
     .dismiss-btn{background:none;border:none;color:rgba(255,255,255,0.6);font-size:20px;cursor:pointer;padding:4px 8px;margin-left:8px}
 
-/* ── LOGIN ── */
 #loginWrap{display:flex;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%);}
 .login-box{background:rgba(255,255,255,0.07);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:24px;padding:36px 28px;width:340px;max-width:95vw;}
 .login-logo{text-align:center;margin-bottom:24px;}
@@ -132,13 +131,12 @@
 .login-btn{width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#a29bfe,#6c5ce7);color:#fff;font-weight:800;font-size:15px;cursor:pointer;margin-bottom:8px;}
 .login-btn2{width:100%;padding:13px;border:1px solid rgba(255,255,255,0.15);border-radius:12px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7);font-weight:700;font-size:14px;cursor:pointer;}
 .login-hint{font-size:11px;color:rgba(255,255,255,0.3);text-align:center;margin-top:12px;line-height:1.5;}
-.toast-fb{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#6c5ce7;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;}
+.toast-fb{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#6c5ce7;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;}
 .toast-fb.show{opacity:1;}
   </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="loginWrap" style="display:none;">
   <div class="login-box">
     <div class="login-logo">
@@ -146,8 +144,8 @@
       <h1>Minha Grana</h1>
       <p>Faça login para acessar</p>
     </div>
-    <div class="login-field"><label>E-mail</label><input type="email" id="lgEmail" placeholder="seu@email.com"/></div>
-    <div class="login-field"><label>Senha</label><input type="password" id="lgSenha" placeholder="Mínimo 6 caracteres"/></div>
+    <div class="login-field"><label>E-mail</label><input type="email" id="lgEmail" placeholder="seu@email.com" autocomplete="email"/></div>
+    <div class="login-field"><label>Senha</label><input type="password" id="lgSenha" placeholder="Mínimo 6 caracteres" autocomplete="current-password"/></div>
     <div class="login-err" id="lgErro"></div>
     <button class="login-btn" id="btnLogin">Entrar</button>
     <button class="login-btn2" id="btnCadastro">Criar conta</button>
@@ -155,7 +153,6 @@
   </div>
 </div>
 <div class="toast-fb" id="toastFb"></div>
-<!-- APP -->
 <div id="appWrap" style="display:none;">
 <div id="app"></div>
 </div><!-- /appWrap -->
@@ -869,19 +866,7 @@ if('serviceWorker' in navigator){var sw="var C='mg-v3';self.addEventListener('in
 render();
 </script>
 
-<script>
-var BACKUP = {
-  "salario": 6850.61,
-  "gastos": [{"id":1,"pago":true,"descricao":"Água","valor":93.35,"categoria":"moradia","dia":10,"fixo":true},{"id":2,"pago":true,"descricao":"Luz","valor":262.92,"categoria":"moradia","dia":10,"fixo":true},{"id":3,"pago":true,"descricao":"Internet e Celular","valor":220.18,"categoria":"moradia","dia":15,"fixo":true},{"id":4,"pago":false,"descricao":"IPTU","valor":241.16,"categoria":"moradia","dia":10,"fixo":true},{"id":5,"pago":true,"descricao":"Filtro","valor":99.9,"categoria":"moradia","dia":10,"fixo":true},{"id":6,"pago":false,"descricao":"Faxina","valor":280,"categoria":"moradia","dia":15,"fixo":true},{"id":8,"pago":true,"descricao":"Plano de Saúde","valor":990.38,"categoria":"saude","dia":1,"fixo":true},{"id":9,"pago":false,"descricao":"Estacionamento","valor":200,"categoria":"transporte","dia":5,"fixo":true},{"id":11,"pago":false,"descricao":"Seguro","valor":195.05,"categoria":"transporte","dia":10,"fixo":true},{"id":13,"pago":true,"descricao":"Saque (guardar em casa)","valor":306.5,"categoria":"outros","dia":1,"fixo":true},{"id":1780356186425,"pago":false,"descricao":"Cartão Porto","valor":639.29,"categoria":"dividas","dia":10,"fixo":true},{"id":1780356220564,"pago":false,"descricao":"Cartao Mercado Pago","valor":345,"categoria":"dividas","dia":5,"fixo":true}],
-  "parcelas": [{"id":1,"pago":true,"descricao":"Curso","valorTotal":2580,"valorParcela":258,"totalParcelas":10,"parcelaAtual":1,"categoria":"educacao","dia":1},{"id":1780355318530,"descricao":"Taina","valorTotal":1200,"valorParcela":600,"totalParcelas":2,"parcelaAtual":1,"categoria":"saude","dia":1,"pago":true},{"id":1780355394085,"descricao":"Cris","valorTotal":300,"valorParcela":300,"totalParcelas":1,"parcelaAtual":1,"categoria":"dividas","dia":1,"pago":true},{"id":1780355418469,"descricao":"Emerson","valorTotal":170,"valorParcela":170,"totalParcelas":1,"parcelaAtual":1,"categoria":"dividas","dia":1,"pago":true}],
-  "gsem": [{"id":1780355639070,"descricao":"Gasolina","valor":194.34,"categoria":"transporte","semana":0},{"id":1780355777387,"descricao":"Cartao Pic Pay","valor":58.46,"categoria":"dividas","semana":0}],
-  "envelopes": {"alimentacao":1000,"beleza":250,"presentes":200,"pet":300,"saude":200,"transporte":300,"assinaturas":25,"outros":300},
-  "historico": []
-};
-</script>
-
-// ═══════════════════ FIREBASE ═══════════════════
-</script>
+<script>var BACKUP = {"salario": 6850.61, "gastos": [{"id": 1, "pago": true, "descricao": "\u00c1gua", "valor": 93.35, "categoria": "moradia", "dia": 10, "fixo": true}, {"id": 2, "pago": true, "descricao": "Luz", "valor": 262.92, "categoria": "moradia", "dia": 10, "fixo": true}, {"id": 3, "pago": true, "descricao": "Internet e Celular", "valor": 220.18, "categoria": "moradia", "dia": 15, "fixo": true}, {"id": 4, "pago": false, "descricao": "IPTU", "valor": 241.16, "categoria": "moradia", "dia": 10, "fixo": true}, {"id": 5, "pago": true, "descricao": "Filtro", "valor": 99.9, "categoria": "moradia", "dia": 10, "fixo": true}, {"id": 6, "pago": false, "descricao": "Faxina", "valor": 280, "categoria": "moradia", "dia": 15, "fixo": true}, {"id": 8, "pago": true, "descricao": "Plano de Sa\u00fade", "valor": 990.38, "categoria": "saude", "dia": 1, "fixo": true}, {"id": 9, "pago": false, "descricao": "Estacionamento", "valor": 200, "categoria": "transporte", "dia": 5, "fixo": true}, {"id": 11, "pago": false, "descricao": "Seguro", "valor": 195.05, "categoria": "transporte", "dia": 10, "fixo": true}, {"id": 13, "pago": true, "descricao": "Saque (guardar em casa)", "valor": 306.5, "categoria": "outros", "dia": 1, "fixo": true}, {"id": 1780356186425, "pago": false, "descricao": "Cart\u00e3o Porto", "valor": 639.29, "categoria": "dividas", "dia": 10, "fixo": true}, {"id": 1780356220564, "pago": false, "descricao": "Cartao Mercado Pago", "valor": 345, "categoria": "dividas", "dia": 5, "fixo": true}], "parcelas": [{"id": 1, "pago": true, "descricao": "Curso", "valorTotal": 2580, "valorParcela": 258, "totalParcelas": 10, "parcelaAtual": 1, "categoria": "educacao", "dia": 1}, {"id": 1780355318530, "descricao": "Taina", "valorTotal": 1200, "valorParcela": 600, "totalParcelas": 2, "parcelaAtual": 1, "categoria": "saude", "dia": 1, "pago": true}, {"id": 1780355394085, "descricao": "Cris", "valorTotal": 300, "valorParcela": 300, "totalParcelas": 1, "parcelaAtual": 1, "categoria": "dividas", "dia": 1, "pago": true}, {"id": 1780355418469, "descricao": "Emerson", "valorTotal": 170, "valorParcela": 170, "totalParcelas": 1, "parcelaAtual": 1, "categoria": "dividas", "dia": 1, "pago": true}], "gsem": [{"id": 1780355639070, "descricao": "Gasolina", "valor": 194.34, "categoria": "transporte", "semana": 0}, {"id": 1780355777387, "descricao": "Cartao Pic Pay", "valor": 58.46, "categoria": "dividas", "semana": 0}], "envelopes": {"alimentacao": 1000, "beleza": 250, "presentes": 200, "pet": 300, "saude": 200, "transporte": 300, "assinaturas": 25, "outros": 300}, "historico": []};</script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -902,6 +887,7 @@ const auth = getAuth(app);
 
 function showToast(msg, err=false) {
   const t = document.getElementById('toastFb');
+  if(!t) return;
   t.textContent = msg;
   t.style.background = err ? '#d63031' : '#6c5ce7';
   t.classList.add('show');
@@ -920,8 +906,8 @@ async function fbSave(uid) {
       historico: JSON.stringify(st.historico),
       updatedAt: new Date().toISOString()
     });
-    showToast('Salvo na nuvem ✓');
-  } catch(e) { showToast('Erro ao salvar: ' + e.message, true); }
+    showToast('Salvo ✓');
+  } catch(e) { showToast('Erro ao salvar', true); }
 }
 
 async function fbLoad(uid) {
@@ -938,8 +924,7 @@ async function fbLoad(uid) {
       showToast('Dados carregados ✓');
       render();
     } else {
-      // Primeira vez — carregar backup embutido
-      st.salario   = 6850.61;
+      st.salario   = BACKUP.salario;
       st.gastos    = BACKUP.gastos;
       st.parcelas  = BACKUP.parcelas;
       st.gsem      = BACKUP.gsem;
@@ -951,11 +936,9 @@ async function fbLoad(uid) {
   } catch(e) { showToast('Erro ao carregar', true); }
 }
 
-// Override salvar global
 window._fbUid = null;
 const _salvarOrig = window.salvar;
 window.salvar = function() {
-  // salvar local também
   try {
     localStorage.setItem('mg_salario', st.salario);
     localStorage.setItem('mg_gastos', JSON.stringify(st.gastos));
@@ -964,11 +947,9 @@ window.salvar = function() {
     localStorage.setItem('mg_env', JSON.stringify(st.envelopes));
     localStorage.setItem('mg_hist', JSON.stringify(st.historico));
   } catch(e) {}
-  // salvar nuvem
   if (window._fbUid) fbSave(window._fbUid);
 };
 
-// Auth
 document.getElementById('btnLogin').addEventListener('click', async () => {
   const email = document.getElementById('lgEmail').value.trim();
   const senha = document.getElementById('lgSenha').value;
