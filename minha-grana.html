@@ -117,10 +117,48 @@
     #install-banner small{font-size:11px;opacity:0.8;display:block;margin-top:2px}
     .install-btn{background:#fff;color:#6c5ce7;border:none;border-radius:10px;padding:8px 16px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap}
     .dismiss-btn{background:none;border:none;color:rgba(255,255,255,0.6);font-size:20px;cursor:pointer;padding:4px 8px;margin-left:8px}
+
+/* ── LOGIN ── */
+#loginWrap{display:flex;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%);}
+.login-box{background:rgba(255,255,255,0.07);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:24px;padding:36px 28px;width:340px;max-width:95vw;}
+.login-logo{text-align:center;margin-bottom:24px;}
+.login-logo h1{font-size:22px;font-weight:800;color:#a29bfe;}
+.login-logo p{font-size:12px;color:rgba(255,255,255,0.45);margin-top:4px;}
+.login-field{margin-bottom:12px;}
+.login-field label{font-size:11px;color:rgba(255,255,255,0.5);display:block;margin-bottom:4px;}
+.login-field input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);color:#fff;font-size:14px;outline:none;}
+.login-field input:focus{border-color:#a29bfe;}
+.login-err{color:#ff7675;font-size:12px;margin-bottom:10px;min-height:18px;text-align:center;}
+.login-btn{width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#a29bfe,#6c5ce7);color:#fff;font-weight:800;font-size:15px;cursor:pointer;margin-bottom:8px;}
+.login-btn2{width:100%;padding:13px;border:1px solid rgba(255,255,255,0.15);border-radius:12px;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.7);font-weight:700;font-size:14px;cursor:pointer;}
+.login-hint{font-size:11px;color:rgba(255,255,255,0.3);text-align:center;margin-top:12px;line-height:1.5;}
+.toast-fb{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#6c5ce7;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;}
+.toast-fb.show{opacity:1;}
   </style>
 </head>
 <body>
+
+<!-- LOGIN -->
+<div id="loginWrap" style="display:none;">
+  <div class="login-box">
+    <div class="login-logo">
+      <div style="font-size:40px;margin-bottom:8px;">💰</div>
+      <h1>Minha Grana</h1>
+      <p>Faça login para acessar</p>
+    </div>
+    <div class="login-field"><label>E-mail</label><input type="email" id="lgEmail" placeholder="seu@email.com"/></div>
+    <div class="login-field"><label>Senha</label><input type="password" id="lgSenha" placeholder="Mínimo 6 caracteres"/></div>
+    <div class="login-err" id="lgErro"></div>
+    <button class="login-btn" id="btnLogin">Entrar</button>
+    <button class="login-btn2" id="btnCadastro">Criar conta</button>
+    <p class="login-hint">Primeira vez? Preencha e-mail e senha<br>e clique em "Criar conta"</p>
+  </div>
+</div>
+<div class="toast-fb" id="toastFb"></div>
+<!-- APP -->
+<div id="appWrap" style="display:none;">
 <div id="app"></div>
+</div><!-- /appWrap -->
 <div id="modal-virar" style="display:none" class="modal-overlay">
   <div class="modal">
     <div class="modal-title">🔄 Virar o Mês?</div>
@@ -830,5 +868,140 @@ if('serviceWorker' in navigator){var sw="var C='mg-v3';self.addEventListener('in
 
 render();
 </script>
+
+<script>
+var BACKUP = {
+  "salario": 6850.61,
+  "gastos": [{"id":1,"pago":true,"descricao":"Água","valor":93.35,"categoria":"moradia","dia":10,"fixo":true},{"id":2,"pago":true,"descricao":"Luz","valor":262.92,"categoria":"moradia","dia":10,"fixo":true},{"id":3,"pago":true,"descricao":"Internet e Celular","valor":220.18,"categoria":"moradia","dia":15,"fixo":true},{"id":4,"pago":false,"descricao":"IPTU","valor":241.16,"categoria":"moradia","dia":10,"fixo":true},{"id":5,"pago":true,"descricao":"Filtro","valor":99.9,"categoria":"moradia","dia":10,"fixo":true},{"id":6,"pago":false,"descricao":"Faxina","valor":280,"categoria":"moradia","dia":15,"fixo":true},{"id":8,"pago":true,"descricao":"Plano de Saúde","valor":990.38,"categoria":"saude","dia":1,"fixo":true},{"id":9,"pago":false,"descricao":"Estacionamento","valor":200,"categoria":"transporte","dia":5,"fixo":true},{"id":11,"pago":false,"descricao":"Seguro","valor":195.05,"categoria":"transporte","dia":10,"fixo":true},{"id":13,"pago":true,"descricao":"Saque (guardar em casa)","valor":306.5,"categoria":"outros","dia":1,"fixo":true},{"id":1780356186425,"pago":false,"descricao":"Cartão Porto","valor":639.29,"categoria":"dividas","dia":10,"fixo":true},{"id":1780356220564,"pago":false,"descricao":"Cartao Mercado Pago","valor":345,"categoria":"dividas","dia":5,"fixo":true}],
+  "parcelas": [{"id":1,"pago":true,"descricao":"Curso","valorTotal":2580,"valorParcela":258,"totalParcelas":10,"parcelaAtual":1,"categoria":"educacao","dia":1},{"id":1780355318530,"descricao":"Taina","valorTotal":1200,"valorParcela":600,"totalParcelas":2,"parcelaAtual":1,"categoria":"saude","dia":1,"pago":true},{"id":1780355394085,"descricao":"Cris","valorTotal":300,"valorParcela":300,"totalParcelas":1,"parcelaAtual":1,"categoria":"dividas","dia":1,"pago":true},{"id":1780355418469,"descricao":"Emerson","valorTotal":170,"valorParcela":170,"totalParcelas":1,"parcelaAtual":1,"categoria":"dividas","dia":1,"pago":true}],
+  "gsem": [{"id":1780355639070,"descricao":"Gasolina","valor":194.34,"categoria":"transporte","semana":0},{"id":1780355777387,"descricao":"Cartao Pic Pay","valor":58.46,"categoria":"dividas","semana":0}],
+  "envelopes": {"alimentacao":1000,"beleza":250,"presentes":200,"pet":300,"saude":200,"transporte":300,"assinaturas":25,"outros":300},
+  "historico": []
+};
+</script>
+
+// ═══════════════════ FIREBASE ═══════════════════
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDSX4zvuCFDjC6XsL1xuHx-lDv6i8hzTl0",
+  authDomain: "gestao-alugueis-c2535.firebaseapp.com",
+  projectId: "gestao-alugueis-c2535",
+  storageBucket: "gestao-alugueis-c2535.firebasestorage.app",
+  messagingSenderId: "702989353731",
+  appId: "1:702989353731:web:067dee3cde7193240f5f36"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+const auth = getAuth(app);
+
+function showToast(msg, err=false) {
+  const t = document.getElementById('toastFb');
+  t.textContent = msg;
+  t.style.background = err ? '#d63031' : '#6c5ce7';
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+async function fbSave(uid) {
+  try {
+    await setDoc(doc(db, 'minhagrana', uid), {
+      salario: String(st.salario),
+      gastos: JSON.stringify(st.gastos),
+      parcelas: JSON.stringify(st.parcelas),
+      gsem: JSON.stringify(st.gsem),
+      envelopes: JSON.stringify(st.envelopes),
+      historico: JSON.stringify(st.historico),
+      updatedAt: new Date().toISOString()
+    });
+    showToast('Salvo na nuvem ✓');
+  } catch(e) { showToast('Erro ao salvar: ' + e.message, true); }
+}
+
+async function fbLoad(uid) {
+  try {
+    const snap = await getDoc(doc(db, 'minhagrana', uid));
+    if (snap.exists()) {
+      const d = snap.data();
+      st.salario   = parseFloat(d.salario) || st.salario;
+      st.gastos    = JSON.parse(d.gastos    || '[]') || st.gastos;
+      st.parcelas  = JSON.parse(d.parcelas  || '[]') || st.parcelas;
+      st.gsem      = JSON.parse(d.gsem      || '[]') || st.gsem;
+      st.envelopes = JSON.parse(d.envelopes || '{}') || st.envelopes;
+      st.historico = JSON.parse(d.historico || '[]') || st.historico;
+      showToast('Dados carregados ✓');
+      render();
+    } else {
+      // Primeira vez — carregar backup embutido
+      st.salario   = 6850.61;
+      st.gastos    = BACKUP.gastos;
+      st.parcelas  = BACKUP.parcelas;
+      st.gsem      = BACKUP.gsem;
+      st.envelopes = BACKUP.envelopes;
+      st.historico = BACKUP.historico || [];
+      await fbSave(uid);
+      render();
+    }
+  } catch(e) { showToast('Erro ao carregar', true); }
+}
+
+// Override salvar global
+window._fbUid = null;
+const _salvarOrig = window.salvar;
+window.salvar = function() {
+  // salvar local também
+  try {
+    localStorage.setItem('mg_salario', st.salario);
+    localStorage.setItem('mg_gastos', JSON.stringify(st.gastos));
+    localStorage.setItem('mg_parcelas', JSON.stringify(st.parcelas));
+    localStorage.setItem('mg_gsem', JSON.stringify(st.gsem));
+    localStorage.setItem('mg_env', JSON.stringify(st.envelopes));
+    localStorage.setItem('mg_hist', JSON.stringify(st.historico));
+  } catch(e) {}
+  // salvar nuvem
+  if (window._fbUid) fbSave(window._fbUid);
+};
+
+// Auth
+document.getElementById('btnLogin').addEventListener('click', async () => {
+  const email = document.getElementById('lgEmail').value.trim();
+  const senha = document.getElementById('lgSenha').value;
+  document.getElementById('lgErro').textContent = '';
+  try { await signInWithEmailAndPassword(auth, email, senha); }
+  catch(e) { document.getElementById('lgErro').textContent = 'E-mail ou senha incorretos.'; }
+});
+
+document.getElementById('btnCadastro').addEventListener('click', async () => {
+  const email = document.getElementById('lgEmail').value.trim();
+  const senha = document.getElementById('lgSenha').value;
+  document.getElementById('lgErro').textContent = '';
+  if (!email || senha.length < 6) { document.getElementById('lgErro').textContent = 'Preencha e-mail e senha (mín. 6 caracteres).'; return; }
+  try { await createUserWithEmailAndPassword(auth, email, senha); }
+  catch(e) {
+    if (e.code === 'auth/email-already-in-use') document.getElementById('lgErro').textContent = 'E-mail já cadastrado. Faça login.';
+    else document.getElementById('lgErro').textContent = 'Erro: ' + e.message;
+  }
+});
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    window._fbUid = user.uid;
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('appWrap').style.display = 'block';
+    await fbLoad(user.uid);
+  } else {
+    window._fbUid = null;
+    document.getElementById('loginWrap').style.display = 'flex';
+    document.getElementById('appWrap').style.display = 'none';
+  }
+});
+</script>
+
 </body>
 </html>
