@@ -204,7 +204,7 @@ function salvar(){
 function carregar(){
   try{
     return{
-      salario:parseFloat(localStorage.getItem('mg2_salario'))||7200,
+      salario:parseFloat(localStorage.getItem('mg2_salario'))||7250,
       gastos:JSON.parse(localStorage.getItem('mg2_gastos'))||GASTOS_PADRAO,
       cartoes:JSON.parse(localStorage.getItem('mg2_cartoes'))||CARTOES_PADRAO,
       lancamentos:JSON.parse(localStorage.getItem('mg2_lanc'))||[],
@@ -625,7 +625,7 @@ function renderDividas(){
       html+='<button onclick="st.editDividaId=null;render()" style="flex:1;padding:10px;border:none;border-radius:12px;background:#fdebe0;color:#c9a594;font-weight:700;cursor:pointer">Cancelar</button>';
       html+='</div></div>';
     }else{
-      html+='<div class="cartao-card" style="background:linear-gradient(135deg,#d4622f,#9c4221)">';
+      html+='<div class="cartao-card" style="background:linear-gradient(135deg,#1a4a52,#0a3d44)">';
       html+='<div class="cartao-top"><div><div class="cartao-nome">📑 '+d.nome+'</div><div class="cartao-limite">Total: '+fmt(d.valorTotal)+'</div></div></div>';
       html+='<div class="cartao-fatura-label">Parcela mensal ('+d.parcelaAtual+'/'+d.totalParcelas+')</div>';
       html+='<div class="cartao-fatura-val">'+fmt(d.parcelaMensal)+'</div>';
